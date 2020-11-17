@@ -1,6 +1,6 @@
 # hhsuite3-binder
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fomightez/hhsuite3-binder/master?filepath=index.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fomightez/hhsuite3-binder/main?filepath=index.ipynb)
 
 *tl;dr:*  
 Click any `launch binder` badge on this page to run command line-based HH-suite3 software inside your browser.
@@ -30,7 +30,7 @@ HH-suite3 for fast remote homology detection and deep protein annotation, *BMC B
 
 ***Clarifying Software Attribution: I, Wayne, am not involved in the HH-suite3 software at all. Those in [the lab of Johannes Söding](https://www.mpibpc.mpg.de/soeding) are the developers and source of HH-suite3. See their materials. I simply set up this repository to make the software useable on the command line without installation headaches and in full-feature environment.***
 
-I, Wayne Decatur, did code a Python-based utility for use with the results from command line HH-suite3 results files; it is available [here](https://github.com/fomightez/sequencework/tree/master/hhsuite3-utilities) and utilized in the notebooks in this repository to process the results and allow easily converting the results to other Python-friendly forms.
+I, Wayne Decatur, did code a Python-based utility for use with the results from command line HH-suite3 results files; it is available [here](https://github.com/fomightez/sequencework/tree/main/hhsuite3-utilities) and utilized in the notebooks in this repository to process the results and allow easily converting the results to other Python-friendly forms.
 
 Usage
 -----
@@ -51,8 +51,8 @@ Technical Details
 
 This repository is set up to make use of the binder service offered by [MyBinder.org](https://mybinder.org/). See their site for more information about Binder.
 
-I borrrowed the 'warning' highlight/introductory text about notebooks at the top of the included notebook from Tim Sherratt's notebook [here](https://github.com/GLAM-Workbench/te-papa-api/blob/master/Exploring-the-Te-Papa-collection-API.ipynb).
+I borrrowed the 'warning' highlight/introductory text about notebooks at the top of the included notebook from Tim Sherratt's notebook [here](https://github.com/GLAM-Workbench/te-papa-api/blob/main/Exploring-the-Te-Papa-collection-API.ipynb).
 
 Click this button below to begin using HH-suite3 (or BLAST, as well):
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fomightez/hhsuite3-binder/master?filepath=index.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fomightez/hhsuite3-binder/main?filepath=index.ipynb)
