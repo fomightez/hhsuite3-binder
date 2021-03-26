@@ -39,7 +39,7 @@ This repository is set up to allow running the command line version of HH-suite3
 
 In the notebooks that can be launched, I have added some examples illustrating how to use the program and process the results easily with Python and convert to other forms. **Additionally, useful resources for using command line HH-suite3 are in those notebooks.** Alternatively, the notebook with most of resources can be viewed statically [here?????](?????). The ['Credits/Resources'????? section right at the top](?????) is a good place to start.
 
-**The Binder-luanchable version too limiting for your needs?**
+**The Binder-launchable version too limiting for your needs?**
 
 The authors have made the software installable via conda, see [here](https://anaconda.org/bioconda/hhsuite).  If you need other installation options, such as configured for a cluster, other installation options are type is discussed [here](https://github.com/soedinglab/hh-suite/wiki#installation-of-the-hhsuite-and-its-databases).
 
