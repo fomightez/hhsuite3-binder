@@ -30,7 +30,8 @@ HH-suite3 for fast remote homology detection and deep protein annotation, *BMC B
 
 ***Clarifying Software Attribution: I, Wayne, am not involved in the HH-suite3 software at all. Those in [the lab of Johannes Söding](https://www.mpibpc.mpg.de/soeding) are the developers and source of HH-suite3. See their materials. I simply set up this repository to make the software useable on the command line without installation headaches and in full-feature environment.***
 
-I, Wayne Decatur, did code a Python-based utility for use with the results from command line HH-suite3 results files; it is available [here](https://github.com/fomightez/sequencework/tree/main/hhsuite3-utilities) and utilized in the notebooks in this repository to process the results and allow easily converting the results to other Python-friendly forms.
+I, Wayne Decatur, did  Jupyter/Python-based utilities for use with the results from command line HH-suite3 results files; these available [here](https://github.com/fomightez/sequencework/tree/master/hhsuite3-utilities) and utilized in the notebooks in this repository to process the results and allow easily converting the results to other Python-friendly forms.
+
 
 Usage
 -----
@@ -48,6 +49,8 @@ Web-based automated searching for remote homologs via [HHpred](https://toolkit.t
 
 Related
 -------
+
+- My [hhsuite3-utilities sub-repo](https://github.com/fomightez/sequencework/tree/master/hhsuite3-utilities)
 
 - [Collection of Jupyter notebooks by Gorbalenya-Lab that were used for their LAMPA paper](https://github.com/Gorbalenya-Lab/hh-suite-notebooks/). LAMPA paper: [LAMPA, LArge Multidomain Protein Annotator, and its application to RNA virus polyproteins.Gulyaeva AA, Sigorskih AI, Ocheredko ES, Samborskiy DV, Gorbalenya AE. Bioinformatics. 2020 May 1;36(9):2731-2739. doi: 10.1093/bioinformatics/btaa065. PMID: 32003788](https://pubmed.ncbi.nlm.nih.gov/32003788/) which describes using HH-suite to annotate multi-domain proteins where the domain boundaries aren't initiall known.
 
