@@ -21,3 +21,5 @@ dependencies:
   - pip:
     - https://github.com/intermine/intermine-ws-python/archive/dev.zip
     - openpyxl
+    - jupytext
+    - snakemake
