@@ -4,10 +4,21 @@
 # based on https://github.com/soedinglab/pdbx and https://www.devdungeon.com/content/how-build-python-source
 # with addition of cmake using `apt.txt` file  based on 
 # https://annefou.github.io/jupyter_dashboards/06-sharing-binder/index.html , after trying without it first
-# and getting notified it was needed
+# and getting notified it was needed and then seeing some specific stuff at 
+# https://annefou.github.io/jupyter_dashboards/06-sharing-binder/index.html  about use in Binder by 
+# searching terms 'binder postbuild "make install". In particular the `cmake ../ -DCMAKE_INSTALL_PREFIX=$PREFIX`
+# comes from there after getting:
+#------------------------------------------
+#Cloning into 'pdbx'...
+#CMake Error: The source directory "/home/jovyan" does not appear to contain CMakeLists.txt.
+#Specify --help for usage, or press the help button on the CMake GUI.
+#make: *** No rule to make target 'install'.  Stop.
+#----END of what I was seeing--------------
+export PREFIX="$(python -c 'import sys; print(sys.prefix)')"
+
 git clone https://github.com/soedinglab/pdbx.git
 
 mkdir build
 cd build
-cmake -DUserInstallOption=ON ../
+cmake ../ -DCMAKE_INSTALL_PREFIX=$PREFIX
 make install
