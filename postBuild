@@ -2,6 +2,9 @@
 
 
 # based on https://github.com/soedinglab/pdbx and https://www.devdungeon.com/content/how-build-python-source
+# with addition of cmake using `apt.txt` file  based on 
+# https://annefou.github.io/jupyter_dashboards/06-sharing-binder/index.html , after trying without it first
+# and getting notified it was needed
 git clone https://github.com/soedinglab/pdbx.git
 
 mkdir build
