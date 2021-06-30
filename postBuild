@@ -17,7 +17,7 @@
 export PREFIX="$(python -c 'import sys; print(sys.prefix)')"
 
 git clone https://github.com/soedinglab/pdbx.git
-cd pbx
+cd pdbx
 mkdir build
 cd build
 cmake ../ -DCMAKE_INSTALL_PREFIX=$PREFIX
