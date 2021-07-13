@@ -1,0 +1,429 @@
+# Save this file as `equiv_snakefile` where you want to run this report-
+# generating pipeline.
+# Snakemake pipeline for generating reports about equivalent residues in an
+# alignment from HH-suite3 software (`.hhr` file) for residues that interact  
+# with other chains in an experimentally determined structure. You need the  
+# query protein in the alignment from HH-suite3 software to occur in a 
+# structure. If that is hard to follow, see an example of an analysis of this 
+# type with just two chains in a structure where one has been aligned with 
+# another sequence by HH-suite3 software, in 
+# `Report if residues interacting with a specific chain have equivalent residues in an hhsuite-generated alignment.ipynb`.
+# This pipeline just expands the abilities so you can do the steps in that 
+# notebook using snakemake pipeline for doing that workflow with many 
+# combinations ofstructures, chains, and alignments. The structures &alignments 
+# used for different reports don't even have to be related in any way.
+# 
+# If you just have to look at very few sets of proteins, then see my notebook 
+# `Report if residues interacting with a specific chain have equivalent residues in an hhsuite-generated alignment.ipynb` 
+# that you can run by going to https://github.com/fomightez/hhsuite3-binder
+#
+# Needs standard packages for Jupytext and Pandas installed via pip.
+# The user has to provide a text table named `equiv_check_matrix.txt` where each
+# line corresponds to specifying the following with each item separated by a 
+# space:
+# PDB_code chain#1 chain#2 alignment_data hit_number_of_interest
+# Note: chain#1 always has to be the same chain that is represented in the query 
+# in the alignment from the HH-suite3 software.
+# hit_number_of_interest: corresponds to the hit number in the alignment file 
+# (`.hhr` file) and so the first one is numbered one.
+#
+# 
+# The text would be actual PDB codes and chain designations, alignment data 
+# file name, hit number in the alignment data file that has the other chain of 
+# interest as the hit in the alignment, whether the details of the residues with
+# equivalents should be included in the report, and  whether the details of the 
+# residues without equivalents should be included in the report. Those last two
+# settings are optional, and left off the first line to illustrate that. They 
+# default to True and False if left off and just five items are given per line 
+# in the 'equiv_check_matrix.txt' table.
+# To help claify that, the following code between the dashed lines
+# can have the starting `#`s removed at the start of each line and that code can 
+# be run in a Jupyter notebook to make such a table involving several 
+# combinations for examining pairs of interactions involving chain A (Rpb1p) 
+# in PDB entries 5vvs & 3rzo and interacting with other chains and also 
+# interaction of fibrallarin (Nop1p) a& Nop56p in an unrelated structure (6zdt):
+#-------------------------
+#s='''5vvs A B alignment_example.hhr 1
+#5vvs A C alignment_example.hhr 1 True False
+#5vvs A D alignment_example.hhr 1
+#5vvs A E alignment_example.hhr 1
+#5vvs A F alignment_example.hhr 1 True True
+#5vvs A G alignment_example.hhr 1
+#5vvs A H alignment_example.hhr 1
+#5vvs A I alignment_example.hhr 1
+#3rzo A B alignment_example.hhr 1
+#3rzo A K alignment_example.hhr 1
+#6zdt A B results_S288C_NOP1.hhr 1
+#'''
+#%store s >equiv_check_matrix.txt
+#-------------------------
+# 
+# Note in the example matrix, the alignment data file name and hit number on 
+# multiple lines are the same; however, the pipeline is written assuming that 
+# won't necessarily be the case. The individual lines make independent reports 
+# and so the entries on different lines don't need to be related in any way.
+# 
+# See the accompanying notebook entitled `Using snakemake to highlight equivalent residues in hhsuite-generated alignments of interacting residues of corresponding combinations of protein-protein interactions.ipynb` for a demo.
+# This file can be run after making the text table `equiv_check_matrix.txt` by 
+# calling
+# `!snakemake -j1 -s equiv_snakefile` from inside a jupyter notebook or run via 
+# `snakemake -j1 -s equiv_snakefile` on the command line.
+# Via MyBinder, run this Snakefile with the following:
+# !snakemake --cores 1  -s equiv_snakefile
+# Only 1 core, because I think when I was using 8 it would commonly cause a race
+# where more than one notebook was getting auxillary scripts and overwriting as
+# as the other notebooks was trying to use. More reliable with 1. But if it, did 
+# fail when using more cores, try re-running again because it should just 
+# complete the missing files.
+# For cleaning, there won't be any conflicts, so use the following on MyBinder:
+# !snakemake --cores 8 clean
+# More general info:
+# If you had a ton of comparisons to process and wanted to take advantage of 
+# parallel processing in the snakemake run you can read this section:
+# Initiate with `snakemake -j X -s ` if the file is named , replacing the `X` 
+# with the number of cores available. 
+# Otherwise, initiate with `snakemake -s <snakefile_name> --cores X` if the 
+# file is named any thing other
+# than `Snakefile`, where `X` is the number of cores.
+# To just initiate a rule/step, run something like:
+# `snakemake -j 8 <name_of_rules>  -s <snakefile_name> `, where the number 8 is
+#  replaced by the result of the command `getconf _NPROCESSORS_ONLN`.
+#
+# Rhis file inherits from 
+# `making snakemake snakefile for making reports of protein-protein interactions for multiple pairs of related structures.py`
+# because it uses a lot of the same idea of generating reports on combinations
+# using a notebook stub and a table to provide the substitution text.
+
+
+import os
+import sys
+import datetime
+now = datetime.datetime.now()
+import pandas as pd
+import numpy as np
+import nbformat as nbf
+
+# INPUT COMPARISON MATRIX/ TABLE------------------------------------------------
+# User's provide the information as table for the comparisons to do. See above
+# for the format of that.
+# I'm bringing it in here so that I can generate the names of the notebooks that
+# need to be made. So that I can use these in snakemake as output and later even
+# as output.
+# For now the file with the table must be named named `int_matrix.txt`.
+
+table_file_to_use  = "equiv_check_matrix.txt" # name of table with info on each
+# row to make a Jupyter notebook with the reports
+column_names=(["structure","chain1","chain2", "alignment_file",
+    "hit_num_in_alignment_to_use","details_for_those_with_equivalents",
+    "details_for_those_without_equivalents"])
+df = pd.read_table(table_file_to_use, 
+    names=column_names, index_col=None,  delim_whitespace=True)
+# use that to define `nb_files` and `processed_nb_files`
+prefix_to_use_for_report_nbs = "equivalents_report_for_"
+nb_files = []
+py_files = []
+#nb_files_without_py = []
+for indx,row in df.iterrows():
+    main = (f'{"_".join(row.tolist()[:4])}')
+    nb_name = f"{prefix_to_use_for_report_nbs}{main}.py.ipynb" # leftover from 
+    # when I was trying to use `notebook:` from snakemake to run a notebook
+    nb_name_simpler = f"{prefix_to_use_for_report_nbs}{main}.ipynb"
+    py_name = f"{prefix_to_use_for_report_nbs}{main}.py"
+    nb_files.append(nb_name_simpler)
+    py_files.append(py_name)
+    #nb_files_without_py.append(nb_name_simpler)
+unprocessed_nb_files = [f"unprocessed_{x}" for x in nb_files]
+
+
+
+
+
+# FILES THAT WILL BE GENERATED--------------------------------------------------
+# py_files #Python versions that are easier to past here that will be converted
+# to the notebooks by jupytext
+#nb_files # the run notebooks generated by running jupytext with the `py_files`
+results_archive = f"equivalents_report_nbs{now.strftime('%b%d%Y%H%M')}.tar.gz"#
+#archive of processed notebooks for downloading
+
+
+
+
+
+
+# Additional, special settings--------------------------------------------------
+# note: In making 
+# `making snakemake snakefile for making reports of protein-protein interactions for multiple pairs of related structures.py`
+# which is what this file inherits from (because very similar approach), I had 
+# originally considered using nbformat to create the cells of the 
+# generated notebook like I recently did with the script powering my 
+# `imgs2RISEslides` repo. However, it turns out to do the prep work there is a 
+# lot of cells before the main scripts. And most importantly, the cell number 
+# and cell content are standardized. In the case of `imgs2RISEslides` the cell 
+# number and content were not standardized and it made sense to use nbformat to 
+# make cells to be able to adjust amount of cells. For there and here, it makes 
+# more sense and is way more direct to use a SINGLE standardized template text 
+# file (actually python script code underlying) and use Jupytext to convert it 
+# into a notebook.
+
+nb_stub_as_py='''# ---
+# jupyter:
+#   jupytext:
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.11.3
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
+# ---
+
+# # Equivalents of Chain structure_chain1_PLACEHOLDER_TEXT residues interacting with Chain structure_chain2_PLACEHOLDER_TEXT in structure_PLACEHOLDER_TEXT that have equivalents in the other aligned sequence in alignment_file_PLACEHOLDER_TEXT
+
+# ### Preparation
+
+structure = "structure_PLACEHOLDER_TEXT"
+
+structure_chain1 = "structure_chain1_PLACEHOLDER_TEXT"
+structure_chain2 = "structure_chain2_PLACEHOLDER_TEXT"
+
+structure_chains_data_name = "datai_structure_PLACEHOLDER_TEXT_structure_chain1_PLACEHOLDER_TEXT_structure_chain2_PLACEHOLDER_TEXT.txt"
+
+details_for_those_with_equivalents = "details_wequivs_PLACEHOLDER_TEXT" #default in script is that details of context will be shown; can override here
+details_for_those_without_equivalents = "details_woutequivs_PLACEHOLDER_TEXT" #default in script is that details of context will NOT be shown; can override here
+
+
+def get_protein_inter_data_files(pdb_code,chain1,chain2,output_file_name):
+    #Takes a PDB entry accession identifier alphanumeic (PDB code), a chain 
+    #identifier for chain 1 and chain identifier for chain 2, along with a
+    #name to give the file produced when the data is retrieved and saved.
+    #
+    #The proteins have to interact in the structure for meaningful data to be returned.
+    source_url = "http://www.ebi.ac.uk/thornton-srv/databases/cgi-bin/pdbsum/GetIface.pl"
+    # !curl -L -o {output_file_name} --data "pdb={pdb_code.lower()}&chain1={chain1}&chain2={chain2}" {source_url}
+# Get data file for the structure
+get_protein_inter_data_files(structure,structure_chain1,structure_chain2,structure_chains_data_name)
+
+# Get a file if not yet retrieved / check if file exists
+import os
+file_needed = "hhsuite3_results_to_df.py"
+if not os.path.isfile(file_needed):
+    # !curl -OL https://raw.githubusercontent.com/fomightez/sequencework/master/hhsuite3-utilities/hhsuite3_results_to_df.py
+file_needed = "pdbsum_prot_interactions_list_to_df.py"
+if not os.path.isfile(file_needed):
+    # !curl -OL https://raw.githubusercontent.com/fomightez/structurework/master/pdbsum-utilities/pdbsum_prot_interactions_list_to_df.py
+file_needed = "make_report_on_equivalents_of_interacting_residues.py"
+if not os.path.isfile(file_needed):
+    # !curl -OL https://raw.githubusercontent.com/fomightez/sequencework/master/hhsuite3-utilities/make_report_on_equivalents_of_interacting_residues.py
+
+from pdbsum_prot_interactions_list_to_df import pdbsum_prot_interactions_list_to_df
+i_df = pdbsum_prot_interactions_list_to_df(structure_chains_data_name)
+
+from hhsuite3_results_to_df import hhsuite3_results_to_df
+hh_df = hhsuite3_results_to_df("alignment_file_PLACEHOLDER_TEXT")
+
+aligned_query_seq = hh_df['qseq'][hit_num_PLACEHOLDER_TEXT]
+aligned_hit_seq = hh_df['hseq'][hit_num_PLACEHOLDER_TEXT]
+
+start_pos_query_seq = hh_df['qstart'][hit_num_PLACEHOLDER_TEXT]
+start_pos_hit_seq = hh_df['hstart'][hit_num_PLACEHOLDER_TEXT]
+
+# ## Generate report
+
+# %run -i make_report_on_equivalents_of_interacting_residues.py
+'''
+# ---End of Additional, special settings----------------------------------------
+
+
+
+##----------------HELPER FUNCTIONS----------------------------------------------
+def write_string_to_file(s, fn):
+    '''
+    Takes a string, `s`, and a name for a file & writes the string to the file.
+    '''
+    with open(fn, 'w') as output_file:
+        output_file.write(s)
+
+
+
+
+
+
+
+# SNAKEMAKE RULES---------------------------------------------------------------
+
+rule all:
+    input:
+        results_archive
+
+# ---------------Individual Rules---------------------------------------------
+
+# Delete any generated files so can trigger full run easily after cleaning
+'''
+The `touch` commands added make sure files matching each and every pattern of
+output so that the `rm` commands don't throw an error.
+'''
+rule clean:
+    shell:
+        '''
+        touch equivalents_report_nbs18199xlkleFAKE.tar.gz
+        touch equivalents_report_for_18199xlkleFAKE.ipynb
+        touch equivalents_report_for_18199xlkleFAKE.py
+        touch datai_18199xlkleFAKE.txt
+        touch hhsuite3_results_to_df.py
+        touch pdbsum_prot_interactions_list_to_df.py
+        touch make_report_on_equivalents_of_interacting_residues.py
+        rm equivalents_report_nbs*.tar.gz
+        rm equivalents_report_for_*.ipynb
+        rm equivalents_report_for_*.py
+        rm datai_*.txt
+        rm hhsuite3_results_to_df.py
+        rm pdbsum_prot_interactions_list_to_df.py
+        rm make_report_on_equivalents_of_interacting_residues.py
+        '''
+
+
+# Use the table & make a Python script that will be used later to make notebook
+rule read_table_and_create_py:
+    input: table_file_to_use
+    output: py_files
+    run:
+        for indx,row in df.iterrows():
+            info_tag= (f'{"_".join(str(x) for x in row.tolist())}') # need 
+            # `str(x)` cast added because integers read in as integers
+            nom_end = f'{"_".join(row.tolist()[:4])}'
+            py_file_name = f"{prefix_to_use_for_report_nbs}{nom_end}.py"
+            stub_as_py = nb_stub_as_py # You cannot use an immutable string from
+            # the main namespace in a rule if you are going to change it. If it 
+            # remains unaltered, it works. The way around is to simply assign 
+            # a new variable name within the rule. HAS TO BE DIFFERENT NAME.
+            stub_as_py = stub_as_py.replace(
+                "structure_PLACEHOLDER_TEXT",row[0])
+            stub_as_py = stub_as_py.replace(
+                "structure_chain1_PLACEHOLDER_TEXT",row[1])
+            stub_as_py = stub_as_py.replace(
+                "structure_chain2_PLACEHOLDER_TEXT",row[2])
+            stub_as_py = stub_as_py.replace(
+                "alignment_file_PLACEHOLDER_TEXT",row[3])
+            stub_as_py = stub_as_py.replace(
+                "hit_num_PLACEHOLDER_TEXT",str(row[4]))
+            # For details settings where settings not provided comment out that 
+            # corresponding line in the notebook being made
+            if pd.isnull(row['details_for_those_with_equivalents']):
+                stub_as_py = stub_as_py.replace(
+                'details_for_those_with_equivalents '
+                '= "details_wequivs_PLACEHOLDER_TEXT"', 
+                '#details_for_those_with_equivalents '
+                '= "details_wequivs_PLACEHOLDER_TEXT"' )
+            else:
+                stub_as_py = stub_as_py.replace(
+                "details_wequivs_PLACEHOLDER_TEXT",str(row[5]))
+            if pd.isnull(row['details_for_those_without_equivalents']):
+                stub_as_py = stub_as_py.replace(
+                'details_for_those_without_equivalents '
+                '= "details_woutequivs_PLACEHOLDER_TEXT"', 
+                '#details_for_those_without_equivalents '
+                '= "details_woutequivs_PLACEHOLDER_TEXT""' )
+            else:
+                stub_as_py = stub_as_py.replace(
+                "details_woutequivs_PLACEHOLDER_TEXT",str(row[6]))
+            write_string_to_file(stub_as_py, py_file_name)
+
+
+
+# In Jupyter I made a template notebook and then converted it to Python script
+# that I thought I'd be able to paste into here because it worked in 
+# `bendIt_analysis.py`.
+# After pasted in here and the docstring in the function (see below) fixed, I 
+# replaced the items that well be swapped in for the individual notebooks with 
+# unique placeholders.
+# Converted the template notebook `pdbsum_simple_report_template.ipynb` to a 
+# Python script I can paste in here using AFTER DELETING A DOCSTRING for the
+# `get_protein_inter_data_files` function
+# so that the quotes didn't mess up the stub being a long docstring:
+#!jupytext --to py pdbsum_simple_report_template.ipynb
+# NOTES FOR USING JUPYTEXT IN THIS PROCESS
+# To convery a script to a notebook without running it; help at 
+# https://jupytext.readthedocs.io/en/latest/using-cli.html
+# !jupytext --to notebook pdbsum_simple_report_template.py --output zzz.ipynb
+# To convery a script to a notebook and run it at same time
+#!jupytext --to notebook --execute pdbsum_simple_report_template.py --output zzz.ipynb
+
+
+
+
+# Convert the python scripts to notebooks and run them
+'''
+I had planned to use the new feature of being able to run notebooks. See
+https://github.com/snakemake/snakemake/tree/master/tests/test_jupyter_notebook 
+and
+https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#jupyter-notebook-integration
+But I having major problems combining the use of wildcards with running the notebook,
+plus it adds a preamble I need to run. Is it just easier to run with jupytext or nbcomvert?
+This is what I tried before:
+rule run_notebooks_to_generate_report:
+    input: "{details}.py.ipynb"
+    output: "processedwpreamble_{details}.py.ipynb"
+    log:
+        # optional path to the processed notebook
+        notebook={output}
+    notebook:
+        {input}
+
+Then I was going to use nbconvert but because jupytext allows me to save a
+a script within a script (or Snakefile, in this case), I switched to that
+to make a python script and then convert it. So this is what I had before 
+switching from nbconvert:
+rule run_notebooks_to_generate_report_using_nbconvert:
+    input: "unprocessed_"+prefix_to_use_for_report_nbs+"{details}.ipynb"
+    output: prefix_to_use_for_report_nbs+"{details}.ipynb"
+    shell: '!jupyter nbconvert --to notebook --execute {input} --output {output}'
+
+I also added after the conversion step removing the input python scripts to 
+progress towards a cleaner interface where the generated notebooks are easier to
+see.
+'''
+rule convert_scripts_to_nb_and_run_using_jupytext:
+    input: prefix_to_use_for_report_nbs+"{details}.py"
+    output: prefix_to_use_for_report_nbs+"{details}.ipynb"
+    shell: 'jupytext --to notebook --execute {input} --output {output};rm {input}'
+
+
+
+
+# Remove the snakemake preamble from the notebooks
+'''
+Snamemake adds a preamble cell when used to run the notebook. This will remove 
+first cell from each notebook using nbformat.
+THIS WAS ONLY NECESSARY WHEN I WAS HOPING TO USE SNAKEMAKES INTERNAL NOTEBNOOK
+HANDLING TO RUN THEM BUT THE WILDCARDS WITH NOTEBOOKS PROVED MORE COMPLEX.
+WHAT I HAD
+rule remove_preamble_cell:
+    input: "processedwpreamble_{details}.py.ipynb"
+    output: "processed_{details}.ipynb"
+    run:
+        ntbk = nbf.read({input} nbf.NO_CONVERT)
+        new_ntbk = ntbk
+        new_ntbk.cells = ntbk.cells[1:]
+        nbf.write({output}, version=nbf.NO_CONVERT)
+'''
+
+
+
+# Create archives with the executed nb_files
+'''
+I added some cleaning as well to remove the auxillary scripts and data to make
+# it easier to see the generated notebooks among the files.
+'''
+rule make_archive:
+    input: nb_files
+    output: results_archive
+    shell:
+        '''
+        rm datai_*.txt
+        rm hhsuite3_results_to_df.py
+        rm pdbsum_prot_interactions_list_to_df.py
+        rm make_report_on_equivalents_of_interacting_residues.py
+        tar -czf {output} {input}; echo "Be sure to download {output}."
+        '''
