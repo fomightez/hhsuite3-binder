@@ -28,7 +28,7 @@ Users of HH-suite3 here should probably cite:
 HH-suite3 for fast remote homology detection and deep protein annotation, *BMC Bioinformatics*, 473. [doi: 10.1186/s12859-019-3019-7](https://doi.org/10.1186/s12859-019-3019-7)
 
 
-***Clarifying Software Attribution: I, Wayne, am not involved in the HH-suite3 software at all. Those in [the lab of Johannes Söding](https://www.mpibpc.mpg.de/soeding) are the developers and source of HH-suite3. See their materials. I simply set up this repository to make the software useable on the command line without installation headaches and in full-feature environment.***
+***Clarifying Software Attribution: I, Wayne, am not involved in the HH-suite3 software at all. Those in [the lab of Johannes Söding](https://www.mpibpc.mpg.de/soeding) are the developers and source of HH-suite3. See their materials. I simply set up this repository to make the software useable on the command line without installation headaches and in a full-featured, browser-based computational environment.***
 
 I, Wayne Decatur, did  Jupyter/Python-based utilities for use with the results from command line HH-suite3 results files; these available [here](https://github.com/fomightez/sequencework/tree/master/hhsuite3-utilities) and utilized in the notebooks in this repository to process the results and allow easily converting the results to other Python-friendly forms.
 
