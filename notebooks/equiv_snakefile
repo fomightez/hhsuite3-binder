@@ -307,7 +307,13 @@ rule read_table_and_create_py:
             stub_as_py = stub_as_py.replace(
                 "alignment_file_PLACEHOLDER_TEXT",row[3])
             stub_as_py = stub_as_py.replace(
-                "hit_num_PLACEHOLDER_TEXT",str(row[4]))
+                "hit_num_PLACEHOLDER_TEXT",str(row[4] - 1)) #` - 1` there 
+            # because `hh_df['qseq'][hit_num_PLACEHOLDER_TEXT]` in notebook is
+            # using Python zero indexing to get the correct row, whereas the 
+            # value in the `.hhr` file is one-indexed and so need to subtract
+            # one to grab the correct dataframe row. For example, if the hit_num
+            # in the `equiv_check_matrix.txt` table is `1` then should result in
+            # ``hh_df['qseq'][0]` in the notebook.
             # For details settings where settings not provided comment out that 
             # corresponding line in the notebook being made
             if pd.isnull(row['details_for_those_with_equivalents']):
