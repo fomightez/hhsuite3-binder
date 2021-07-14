@@ -314,6 +314,7 @@ rule read_table_and_create_py:
             # one to grab the correct dataframe row. For example, if the hit_num
             # in the `equiv_check_matrix.txt` table is `1` then should result in
             # ``hh_df['qseq'][0]` in the notebook.
+            #-------------------------------------------------------------------
             # For details settings where settings not provided comment out that 
             # corresponding line in the notebook being made
             if pd.isnull(row['details_for_those_with_equivalents']):
