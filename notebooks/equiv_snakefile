@@ -190,8 +190,8 @@ structure_chain2 = "structure_chain2_PLACEHOLDER_TEXT"
 
 structure_chains_data_name = "datai_structure_PLACEHOLDER_TEXT_structure_chain1_PLACEHOLDER_TEXT_structure_chain2_PLACEHOLDER_TEXT.txt"
 
-details_for_those_with_equivalents = "details_wequivs_PLACEHOLDER_TEXT" #default in script is that details of context will be shown; can override here
-details_for_those_without_equivalents = "details_woutequivs_PLACEHOLDER_TEXT" #default in script is that details of context will NOT be shown; can override here
+details_for_those_with_equivalents = details_wequivs_PLACEHOLDER_TEXT #default in script is that details of context will be shown; can override here
+details_for_those_without_equivalents = details_woutequivs_PLACEHOLDER_TEXT #default in script is that details of context will NOT be shown; can override here
 
 
 def get_protein_inter_data_files(pdb_code,chain1,chain2,output_file_name):
@@ -233,6 +233,15 @@ start_pos_hit_seq = hh_df['hstart'][hit_num_PLACEHOLDER_TEXT]
 
 # %run -i make_report_on_equivalents_of_interacting_residues.py
 '''
+
+
+commented_out_messes_up_in_jupytext='''#details_for_those_with_equivalents = True #default in script is that details of context will be shown; can override here
+#details_for_those_without_equivalents = False #default in script is that details of context will NOT be shown; can override here'''
+
+commented_out_stub_for_jupytext_to_work_proper='''# +
+#details_for_those_with_equivalents = True #default in script is that details of context will be shown; can override here
+#details_for_those_without_equivalents = False #default in script is that details of context will NOT be shown; can override here
+# -'''
 # ---End of Additional, special settings----------------------------------------
 
 
@@ -320,21 +329,35 @@ rule read_table_and_create_py:
             if pd.isnull(row['details_for_those_with_equivalents']):
                 stub_as_py = stub_as_py.replace(
                 'details_for_those_with_equivalents '
-                '= "details_wequivs_PLACEHOLDER_TEXT"', 
+                '= details_wequivs_PLACEHOLDER_TEXT', 
                 '#details_for_those_with_equivalents '
-                '= "details_wequivs_PLACEHOLDER_TEXT"' )
+                '= True' )
             else:
                 stub_as_py = stub_as_py.replace(
                 "details_wequivs_PLACEHOLDER_TEXT",str(row[5]))
             if pd.isnull(row['details_for_those_without_equivalents']):
                 stub_as_py = stub_as_py.replace(
                 'details_for_those_without_equivalents '
-                '= "details_woutequivs_PLACEHOLDER_TEXT"', 
+                '= details_woutequivs_PLACEHOLDER_TEXT', 
                 '#details_for_those_without_equivalents '
-                '= "details_woutequivs_PLACEHOLDER_TEXT""' )
+                '= False' )
             else:
                 stub_as_py = stub_as_py.replace(
                 "details_woutequivs_PLACEHOLDER_TEXT",str(row[6]))
+            # If both get commented, the way I'm doing it, the code cell becomes
+            # a non-code cell upon conversion by Jupytext to a notebook. This is
+            # less than ideal because it makes that block look clunkt and 
+            # someone may want to run the notebook itself and may be confused by
+            # by not having those as code cell. This should keep those two lines
+            # as a single code cell even if both have comment in front.
+            if (
+                pd.isnull(row['details_for_those_with_equivalents']) and 
+                pd.isnull(row['details_for_those_without_equivalents'])):
+                stub_as_py = stub_as_py.replace(
+                    commented_out_messes_up_in_jupytext,
+                    commented_out_stub_for_jupytext_to_work_proper)
+
+
             write_string_to_file(stub_as_py, py_file_name)
 
 
