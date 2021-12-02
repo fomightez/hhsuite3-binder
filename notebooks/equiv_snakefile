@@ -76,7 +76,7 @@
 # fail when using more cores, try re-running again because it should just 
 # complete the missing files.
 # For cleaning, there won't be any conflicts, so use the following on MyBinder:
-# !snakemake --cores 8 clean
+# !snakemake  -s equiv_snakefile --cores 8 clean 
 # More general info:
 # If you had a ton of comparisons to process and wanted to take advantage of 
 # parallel processing in the snakemake run you can read this section:
@@ -86,7 +86,7 @@
 # file is named any thing other
 # than `Snakefile`, where `X` is the number of cores.
 # To just initiate a rule/step, run something like:
-# `snakemake -j 8 <name_of_rules>  -s <snakefile_name> `, where the number 8 is
+# `snakemake -j 8 <name_of_rules>  -s <snakefile_name>`, where the number 8 is
 #  replaced by the result of the command `getconf _NPROCESSORS_ONLN`.
 #
 # Rhis file inherits from 
@@ -135,7 +135,19 @@ for indx,row in df.iterrows():
 unprocessed_nb_files = [f"unprocessed_{x}" for x in nb_files]
 
 
-
+# GET THE SCRIPTS THAT WILL MAKE DATAFRAMES-------------------------------------
+# This way they can be used as input to a rule and if they are changed the
+# approrpriate parts of the workdlow will be rerun.
+file_needed = "pdbsum_prot_interactions_list_to_df.py"
+if not os.path.isfile(file_needed):
+    os.system("curl -OL https://raw.githubusercontent.com/"\
+        "fomightez/structurework/master/"\
+        f"pdbsum-utilities/{file_needed}")
+file_needed = "hhsuite3_results_to_df.py"
+if not os.path.isfile(file_needed):
+    os.system("curl -OL https://raw.githubusercontent.com/"\
+        "fomightez/sequencework/master/"\
+        f"hhsuite3-utilities/{file_needed}")
 
 
 # FILES THAT WILL BE GENERATED--------------------------------------------------
@@ -294,8 +306,17 @@ rule clean:
 
 
 # Use the table & make a Python script that will be used later to make notebook
+'''
+By including the python scripts as input, this rule will be run 
+again if the scripts are edited. (See about `wordcount.py` under 
+'Handling dependencies differently' as 
+https://carpentries-incubator.github.io/workflows-snakemake/03-wildcards/index.html
+'''
 rule read_table_and_create_py:
-    input: table_file_to_use
+    input:
+        table_file_to_use,
+        'hhsuite3_results_to_df.py',
+        'pdbsum_prot_interactions_list_to_df.py'
     output: py_files
     run:
         for indx,row in df.iterrows():
@@ -444,7 +465,7 @@ rule remove_preamble_cell:
 # Create archives with the executed nb_files
 '''
 I added some cleaning as well to remove the auxillary scripts and data to make
-# it easier to see the generated notebooks among the files.
+it easier to see the generated notebooks among the files.
 '''
 rule make_archive:
     input: nb_files
