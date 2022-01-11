@@ -36,7 +36,7 @@
 # settings are optional, and left off the first line to illustrate that. They 
 # default to True and False if left off and just five items are given per line 
 # in the 'equiv_check_matrix.txt' table.
-# To help claify that, the following code between the dashed lines
+# To help clarify that, the following code between the dashed lines
 # can have the starting `#`s removed at the start of each line and that code can 
 # be run in a Jupyter notebook to make such a table involving several 
 # combinations for examining pairs of interactions involving chain A (Rpb1p) 
