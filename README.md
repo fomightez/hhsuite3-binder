@@ -52,7 +52,7 @@ Related
 
 - My [hhsuite3-utilities sub-repo](https://github.com/fomightez/sequencework/tree/master/hhsuite3-utilities)
 
-- [Collection of Jupyter notebooks by Gorbalenya-Lab that were used for their LAMPA paper](https://github.com/Gorbalenya-Lab/hh-suite-notebooks/). LAMPA paper: [LAMPA, LArge Multidomain Protein Annotator, and its application to RNA virus polyproteins.Gulyaeva AA, Sigorskih AI, Ocheredko ES, Samborskiy DV, Gorbalenya AE. Bioinformatics. 2020 May 1;36(9):2731-2739. doi: 10.1093/bioinformatics/btaa065. PMID: 32003788](https://pubmed.ncbi.nlm.nih.gov/32003788/) which describes using HH-suite to annotate multi-domain proteins where the domain boundaries aren't initiall known.
+- [Collection of Jupyter notebooks by Gorbalenya-Lab that were used for their LAMPA paper](https://github.com/Gorbalenya-Lab/hh-suite-notebooks/). LAMPA paper: [LAMPA, LArge Multidomain Protein Annotator, and its application to RNA virus polyproteins.Gulyaeva AA, Sigorskih AI, Ocheredko ES, Samborskiy DV, Gorbalenya AE. Bioinformatics. 2020 May 1;36(9):2731-2739. doi: 10.1093/bioinformatics/btaa065. PMID: 32003788](https://pubmed.ncbi.nlm.nih.gov/32003788/) which describes using HH-suite to annotate multi-domain proteins where the domain boundaries aren't initially known.
 
 
 Technical Details
